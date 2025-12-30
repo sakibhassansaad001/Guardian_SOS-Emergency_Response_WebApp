@@ -69,7 +69,7 @@ const SOSPage: React.FC = () => {
     const relativeX = clientX - rect.left - (handleWidth / 2);
     const pos = Math.min(Math.max(0, relativeX), maxTravel);
     setSliderPos(pos);
-    if (pos >= maxTravel * 0.98) {
+    if (pos >= maxTravel * 0.99) {
       triggerSOS();
     }
   };
@@ -81,6 +81,15 @@ const SOSPage: React.FC = () => {
     if ('vibrate' in navigator) navigator.vibrate([100, 30, 100, 30, 100]);
     setTimeout(() => setShowSnackbar(false), 5000);
   };
+
+  const getProgress = () => {
+    if (!trackRef.current) return 0;
+    const rect = trackRef.current.getBoundingClientRect();
+    const maxTravel = rect.width - handleWidth - (padding * 2);
+    return sliderPos / maxTravel;
+  };
+
+  const progress = getProgress();
 
   return (
     <div className="flex-1 flex flex-col h-full bg-background-light dark:bg-background-dark overflow-y-auto no-scrollbar pb-40 md:pb-32">
@@ -103,7 +112,7 @@ const SOSPage: React.FC = () => {
       <header className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-gray-200 dark:border-white/10 px-4 pt-4 pb-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <button onClick={() => navigate('/profile')} className="flex md:hidden size-10 items-center justify-center rounded-full bg-gray-200 dark:bg-white/10">
-            <span className="material-symbols-outlined text-[24px]">close</span>
+            <span className="material-symbols-outlined text-[24px]">account_circle</span>
           </button>
           <h2 className="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center md:text-left">Emergency Assistance</h2>
           <button className="text-[#b99d9e] text-xs font-bold uppercase tracking-wider hover:text-primary">Test</button>
@@ -215,9 +224,26 @@ const SOSPage: React.FC = () => {
           onMouseUp={() => { setIsDragging(false); setSliderPos(0); }}
           onTouchEnd={() => { setIsDragging(false); setSliderPos(0); }}
         >
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-            <p className="text-white/40 text-[10px] font-bold tracking-[0.2em] animate-pulse">SLIDE FOR GENERAL SOS</p>
+          {/* Animated Background Fill */}
+          <div 
+            className="absolute inset-y-0 left-0 bg-primary/40 transition-all duration-75 ease-out"
+            style={{ width: `${sliderPos + handleWidth}px` }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-primary/30 animate-pulse"></div>
           </div>
+
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+            <p className="text-white/40 text-[10px] font-bold tracking-[0.2em] transition-opacity duration-200" style={{ opacity: 1 - progress * 1.5 }}>
+              SLIDE FOR GENERAL SOS
+            </p>
+            <p className="absolute text-white/80 text-[10px] font-black tracking-[0.2em] transition-opacity duration-200" style={{ opacity: progress > 0.3 ? (progress < 0.8 ? 1 : 0) : 0 }}>
+              KEEP SLIDING TO SEND
+            </p>
+            <p className="absolute text-white text-[10px] font-black tracking-[0.2em] animate-pulse" style={{ opacity: progress >= 0.8 ? 1 : 0 }}>
+              RELEASE TO ACTIVATE
+            </p>
+          </div>
+
           <div 
             className={`absolute top-1 left-1 bottom-1 w-14 rounded-full bg-primary flex items-center justify-center shadow-lg z-10 cursor-ew-resize touch-none ${!isDragging ? 'transition-all duration-300 ease-out' : ''}`}
             style={{ transform: `translateX(${sliderPos}px)` }}
@@ -226,6 +252,7 @@ const SOSPage: React.FC = () => {
           >
             <span className="material-symbols-outlined text-white animate-pulse">sos</span>
           </div>
+
           <div className="absolute right-4 top-0 bottom-0 flex items-center text-white/20">
             <span className="material-symbols-outlined">chevron_right</span>
             <span className="material-symbols-outlined -ml-3 opacity-60">chevron_right</span>
