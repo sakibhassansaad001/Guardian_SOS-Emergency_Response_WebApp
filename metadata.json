@@ -1,0 +1,8 @@
+{
+  "name": "Guardian SOS - Emergency Response WebApp",
+  "description": "A comprehensive emergency response application featuring instant SOS alerts, emergency service dialing, medical ID profiles, and location sharing with trusted contacts.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ]
+}
